@@ -1,5 +1,7 @@
 <?php
 
+namespace Router;
+
 enum Method
 {
     case GET;

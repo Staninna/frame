@@ -1,10 +1,9 @@
-<?php
-session_start();
+<?php session_start();
 
-//require_once 'db.php';
-//require_once 'config.php';
-//require_once 'functions.php';
-require_once 'Router.php';
+use \Router\Router;
+use \Router\Method;
+require_once 'Router/Router.php';
+require_once 'Router/Method.php';
 
 $router = new Router();
 
@@ -22,7 +21,11 @@ $router->group('/api', function(Router $router): void {
     });
 });
 
+
+
 // Process the request
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $router->run(Method::from($method), $path);
+
+var_dump($_SESSION);

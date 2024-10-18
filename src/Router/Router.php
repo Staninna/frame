@@ -1,13 +1,25 @@
 <?php
 
-class Router {
+namespace Router;
+
+class Router
+{
     /** @var array<array{method: string, path: string, handler: callable, middlewares: array<callable>}> */
     private array $routes = [];
     private string $prefix = '';
     /** @var array<callable> */
     private array $groupMiddlewares = [];
 
-    public function add(Method $method, string $path, callable $handler, array $middlewares = []): void {
+    // properties
+    private int $maxHistory;
+
+    public function __construct(int $maxHistory = 100)
+    {
+        $this->maxHistory = $maxHistory;
+    }
+
+    public function add(Method $method, string $path, callable $handler, array $middlewares = []): void
+    {
         $this->routes[] = [
             'method' => $method,
             'path' => $this->prefix . $path,
@@ -16,7 +28,8 @@ class Router {
         ];
     }
 
-    public function group(string $prefix, callable $callback, array $middlewares = []): void {
+    public function group(string $prefix, callable $callback, array $middlewares = []): void
+    {
         $previousPrefix = $this->prefix;
         $previousMiddlewares = $this->groupMiddlewares;
 
@@ -29,8 +42,9 @@ class Router {
         $this->groupMiddlewares = $previousMiddlewares;
     }
 
-    public function run(Method $method, string $path): void {
-        $this->addNavigationHistory($path);
+    public function run(Method $method, string $path): void
+    {
+        $this->addNavigationHistory($path, $method);
 
         foreach ($this->routes as $route) {
             $params = $this->matchPath($route['path'], $path);
@@ -53,12 +67,23 @@ class Router {
     /**
      * store user navigation history in session
      * @param string $path
+     * @param Method $method
      */
-    public function addNavigationHistory(string $path): void {
+    public function addNavigationHistory(string $path, Method $method): void
+    {
         if (!isset($_SESSION['navigation_history'])) {
             $_SESSION['navigation_history'] = [];
         }
-        $_SESSION['navigation_history'][] = $path;
+
+        while (count($_SESSION['navigation_history']) > $this->maxHistory) {
+            array_shift($_SESSION['navigation_history']);
+        }
+
+        $_SESSION['navigation_history'][] = [
+            'path' => $path,
+            'method' => $method,
+            'timestamp' => time()
+        ];
     }
 
     /**
@@ -88,7 +113,8 @@ class Router {
     /**
      * @param array<callable> $middlewares
      */
-    private function runMiddlewares(array $middlewares): void {
+    private function runMiddlewares(array $middlewares): void
+    {
         foreach ($middlewares as $middleware) {
             $middleware();
         }
