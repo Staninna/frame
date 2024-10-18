@@ -4,7 +4,7 @@ session_start();
 //require_once 'db.php';
 //require_once 'config.php';
 //require_once 'functions.php';
-require_once 'router.php';
+require_once 'Router.php';
 
 $router = new Router();
 
