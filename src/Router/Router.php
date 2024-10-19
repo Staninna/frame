@@ -126,7 +126,7 @@ class Router
     private function runMiddlewaresAndHandler(array $middlewares, callable $handler, Request $request, Response $response): void
     {
         $middlewareChain = array_reduce(
-            array_reverse($middlewares),
+            array_reverse($middlewares), // Because `array_reverse` processes the array in reverse order ig
             function ($next, $middleware) {
                 return function (Request $request, Response $response) use ($middleware, $next) {
                     $middleware($request, $response, $next);
