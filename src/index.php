@@ -2,10 +2,10 @@
 
 require_once 'require.php';
 
-use Router\Method;
+use Http\Method;
+use Http\Request;
+use Http\Response;
 use Router\Router;
-use Router\Request;
-use Router\Response;
 
 $router = new Router();
 

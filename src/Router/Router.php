@@ -2,6 +2,10 @@
 
 namespace Router;
 
+use Http\Method;
+use Http\Request;
+use Http\Response;
+
 class Router
 {
     /** @var array<array{method: string, path: string, handler: callable, middlewares: array<callable>}> */
