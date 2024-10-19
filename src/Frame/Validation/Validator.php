@@ -1,6 +1,6 @@
 <?php
 
-namespace Validation;
+namespace Frame\Validation;
 
 // TODO: Add support for custom validators (global?)
 // TODO: Add support for custom error messages (global?)
@@ -34,6 +34,9 @@ namespace Validation;
  * ]);
  * ```
  */
+
+use Validation\ValidatorInterface;
+
 class Validator implements ValidatorInterface
 {
     private array $errors = [];

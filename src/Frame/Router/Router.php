@@ -1,10 +1,10 @@
 <?php
 
-namespace Router;
+namespace Frame\Router;
 
-use Http\Method;
-use Http\Request;
-use Http\Response;
+use Frame\Http\Method;
+use Frame\Http\Request;
+use Frame\Http\Response;
 
 class Router
 {

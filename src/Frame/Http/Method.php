@@ -1,6 +1,6 @@
 <?php
 
-namespace Http;
+namespace Frame\Http;
 
 enum Method: string
 {

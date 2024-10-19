@@ -1,11 +1,11 @@
 <?php
 
-require_once 'require.php';
+require_once 'Frame/require.php';
 
-use Http\Method;
-use Http\Request;
-use Http\Response;
-use Router\Router;
+use Frame\Http\Method;
+use Frame\Http\Request;
+use Frame\Http\Response;
+use Frame\Router\Router;
 
 $router = new Router();
 

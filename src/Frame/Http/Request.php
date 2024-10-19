@@ -1,9 +1,9 @@
 <?php
 
-namespace Http;
+namespace Frame\Http;
 
-use Utils\Sanitizer;
-use Validation\Validator;
+use Frame\Sanitizer;
+use Frame\Validation\Validator;
 
 class Request
 {

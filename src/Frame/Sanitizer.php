@@ -1,6 +1,6 @@
 <?php
 
-namespace Utils;
+namespace Frame;
 
 // TODO: Add support for custom sanitizers (global?)
 /**
