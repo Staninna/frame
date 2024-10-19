@@ -13,6 +13,8 @@ $logMiddleware = function (Request $request, Response $response, callable $next)
     $response->write("Middleware: Logging request <br>");
     $response->write("Request path: " . $request->path . "<br>");
     $response->write("Request method: " . $request->method->value . "<br>");
+    $response->write("Request params: " . json_encode($request->params) . "<br>");
+    $response->write("End of logging middleware <br>");
     $next($request, $response);
 };
 
