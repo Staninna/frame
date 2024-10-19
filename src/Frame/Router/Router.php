@@ -8,7 +8,7 @@ use Frame\Http\Response;
 
 class Router
 {
-    /** @var array<array{method: string, path: string, handler: callable, middlewares: array<callable>}> */
+    /** @var array<array{method: string, path: string, handler: callable|array, middlewares: array<callable>}> */
     private array $routes = [];
     private string $prefix = '';
     /** @var array<callable> */
@@ -21,7 +21,7 @@ class Router
         $this->maxHistory = $maxHistory;
     }
 
-    public function add(Method $method, string $path, callable $handler, array $middlewares = []): void
+    public function add(Method $method, string $path, callable|array $handler, array $middlewares = []): void
     {
         $this->routes[] = [
             'method' => $method,
@@ -119,21 +119,27 @@ class Router
     /**
      * Run middlewares and handler in a chain
      * @param array<callable> $middlewares
-     * @param callable $handler
+     * @param callable|array $handler
      * @param Request $request
      * @param Response $response
      */
-    private function runMiddlewaresAndHandler(array $middlewares, callable $handler, Request $request, Response $response): void
+    private function runMiddlewaresAndHandler(array $middlewares, callable|array $handler, Request $request, Response $response): void
     {
         $middlewareChain = array_reduce(
-            array_reverse($middlewares), // Because `array_reverse` processes the array in reverse order ig
+            array_reverse($middlewares),
             function ($next, $middleware) {
                 return function (Request $request, Response $response) use ($middleware, $next) {
                     $middleware($request, $response, $next);
                 };
             },
             function (Request $request, Response $response) use ($handler) {
-                $handler($request, $response);
+                if (is_array($handler)) {
+                    [$controller, $method] = $handler;
+                    $controller = new $controller();
+                    $controller->$method($request, $response);
+                } else {
+                    $handler($request, $response);
+                }
             }
         );
 

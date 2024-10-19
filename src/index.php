@@ -1,6 +1,7 @@
 <?php
 
 require_once 'Frame/require.php';
+require_once 'UsersController.php';
 
 use Frame\Http\Method;
 use Frame\Http\Request;
@@ -19,6 +20,10 @@ $logMiddleware = function (Request $request, Response $response, callable $next)
 };
 
 $router->group('/api', function (Router $router): void {
+    // Use controller
+    $router->add(Method::GET, '/users/controller', [UsersController::class, 'index']);
+
+    // Use closure
     $router->add(Method::GET, '/users', function (Request $request, Response $response): void {
         $response->write("Listing users");
     });
