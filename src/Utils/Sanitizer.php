@@ -41,7 +41,7 @@ class Sanitizer
         return $sanitized;
     }
 
-    private function sanitizeValue($value, array $rules): mixed
+    private function sanitizeValue($value, array $rules): string
     {
         foreach ($rules as $rule) {
             [$ruleName] = explode(':', $rule, 2);

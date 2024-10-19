@@ -34,7 +34,7 @@ namespace Validation;
  * ]);
  * ```
  */
-class Validator
+class Validator implements ValidatorInterface
 {
     private array $errors = [];
 

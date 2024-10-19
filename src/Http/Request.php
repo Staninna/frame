@@ -2,6 +2,9 @@
 
 namespace Http;
 
+use Utils\Sanitizer;
+use Validation\Validator;
+
 class Request
 {
     public Method $method;
@@ -11,6 +14,9 @@ class Request
     public mixed $body;
     public array $params = [];
 
+    private Validator $validator;
+    private Sanitizer $sanitizer;
+
     public function __construct()
     {
         $this->method = Method::from($_SERVER['REQUEST_METHOD'] ?? 'GET');
@@ -18,6 +24,9 @@ class Request
         $this->headers = $this->getRequestHeaders();
         $this->queryParams = $_GET ?? [];
         $this->body = $this->getRequestBody();
+
+        $this->validator = new Validator();
+        $this->sanitizer = new Sanitizer();
     }
 
     private function getRequestHeaders(): array
@@ -54,5 +63,20 @@ class Request
         }
 
         return $body;
+    }
+
+    public function validate(array $rules): bool
+    {
+        return $this->validator->validate($this->body, $rules);
+    }
+
+    public function sanitize(array $rules): array
+    {
+        return $this->sanitizer->sanitize($this->body, $rules);
+    }
+
+    public function getValidationErrors(): array
+    {
+        return $this->validator->getErrors();
     }
 }
