@@ -1,29 +1,35 @@
-<?php session_start();
+<?php
+
+require_once 'require.php';
 
 use Router\Method;
 use Router\Router;
-
-require_once 'Router/Router.php';
-require_once 'Router/Method.php';
+use Router\Request;
+use Router\Response;
 
 $router = new Router();
 
+$logMiddleware = function (Request $request, Response $response, callable $next): void {
+    $response->write("Middleware: Logging request <br>");
+    $response->write("Request path: " . $request->path . "<br>");
+    $response->write("Request method: " . $request->method->value . "<br>");
+    $next($request, $response);
+};
+
 $router->group('/api', function (Router $router): void {
-    $router->add(Method::GET, '/users', function (): void {
-        echo "Listing users";
+    $router->add(Method::GET, '/users', function (Request $request, Response $response): void {
+        $response->write("Listing users");
     });
 
-    $router->add(Method::GET, '/users/:id', function (array $params): void {
-        echo "User ID: " . htmlspecialchars($params['id']);
+    $router->add(Method::GET, '/users/:id', function (Request $request, Response $response): void {
+        $id = htmlspecialchars($request->params['id']);
+        $response->write("User ID: " . $id);
     });
 
-    $router->add(Method::POST, '/users', function (array $params, array $body): void {
-        echo "Creating user with data: " . json_encode($body);
+    $router->add(Method::POST, '/users', function (Request $request, Response $response): void {
+        $body = $request->body;
+        $response->write("Creating user with data: " . json_encode($body));
     });
-});
+}, [$logMiddleware]);
 
-
-// Process the request
-$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$router->run(Method::from($method), $path);
+$router->run();

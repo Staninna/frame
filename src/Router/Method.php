@@ -2,16 +2,11 @@
 
 namespace Router;
 
-enum Method
+enum Method: string
 {
-    case GET;
-    case POST;
-
-    public static function from(string $method): Method
-    {
-        return match ($method) {
-            'GET' => self::GET,
-            'POST' => self::POST,
-        };
-    }
+    case GET = 'GET';
+    case POST = 'POST';
+    case PUT = 'PUT';
+    case DELETE = 'DELETE';
+    case PATCH = 'PATCH';
 }

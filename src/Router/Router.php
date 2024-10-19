@@ -10,7 +10,6 @@ class Router
     /** @var array<callable> */
     private array $groupMiddlewares = [];
 
-    // properties
     private int $maxHistory;
 
     public function __construct(int $maxHistory = 100)
@@ -42,32 +41,35 @@ class Router
         $this->groupMiddlewares = $previousMiddlewares;
     }
 
-    // TODO: Add support for query parameters
-    // TODO: Abstract to Request/Response classes
-    public function run(Method $method, string $path): void
+    public function run(): void
     {
-        $this->addNavigationHistory($path, $method);
+        session_start();
+
+        $request = new Request();
+        $response = new Response();
+
+        $this->addNavigationHistory($request->path, $request->method);
 
         foreach ($this->routes as $route) {
-            $params = $this->matchPath($route['path'], $path);
-            if ($route['method'] === $method && $params !== false) {
-                $body = $this->getRequestBody();
+            $params = $this->matchPath($route['path'], $request->path);
+            if ($route['method'] === $request->method && $params !== false) {
+                $request->params = $params;
 
-                // Combine middlewares and handler into a single callable chain
-                $this->runMiddlewaresAndHandler($route['middlewares'], $route['handler'], $params, $body);
+                $this->runMiddlewaresAndHandler($route['middlewares'], $route['handler'], $request, $response);
                 return;
             }
         }
 
-        // TODO: Proper error handling
-        http_response_code(404);
-        echo "404 - Not Found";
+        // Proper error handling
+        $response->setStatusCode(404);
+        $response->write("404 - Not Found");
+        $response->send();
     }
 
     /**
      * Store user navigation history in session
-     * @param string $path
-     * @param Method $method
+     * @param string $path Path
+     * @param Method $method HTTP method
      */
     public function addNavigationHistory(string $path, Method $method): void
     {
@@ -114,40 +116,24 @@ class Router
      * Run middlewares and handler in a chain
      * @param array<callable> $middlewares
      * @param callable $handler
-     * @param array<string, string> $params
-     * @param mixed $body
+     * @param Request $request
+     * @param Response $response
      */
-    private function runMiddlewaresAndHandler(array $middlewares, callable $handler, array $params, mixed $body): void
+    private function runMiddlewaresAndHandler(array $middlewares, callable $handler, Request $request, Response $response): void
     {
         $middlewareChain = array_reduce(
             array_reverse($middlewares),
             function ($next, $middleware) {
-                return function ($params, $body) use ($middleware, $next) {
-                    $middleware($params, $body, $next);
+                return function (Request $request, Response $response) use ($middleware, $next) {
+                    $middleware($request, $response, $next);
                 };
             },
-            function ($params, $body) use ($handler) {
-                $handler($params, $body);
+            function (Request $request, Response $response) use ($handler) {
+                $handler($request, $response);
             }
         );
 
-        $middlewareChain($params, $body);
-    }
-
-    /**
-     * @return array|string
-     */
-    // TODO: Abstract to Request/Response classes
-    private function getRequestBody(): array|string
-    {
-        $body = file_get_contents('php://input');
-        $contentType = isset($_SERVER['CONTENT_TYPE']) ? trim($_SERVER['CONTENT_TYPE']) : '';
-
-        if (strcasecmp($contentType, 'application/json') == 0) {
-            $body = json_decode($body, true);
-            return $body !== null ? $body : [];
-        }
-
-        return $body;
+        $middlewareChain($request, $response);
+        $response->send();
     }
 }
