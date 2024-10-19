@@ -42,6 +42,8 @@ class Router
         $this->groupMiddlewares = $previousMiddlewares;
     }
 
+    // TODO: Add support for query parameters
+    // TODO: Abstract to Request/Response classes
     public function run(Method $method, string $path): void
     {
         $this->addNavigationHistory($path, $method);
@@ -49,23 +51,21 @@ class Router
         foreach ($this->routes as $route) {
             $params = $this->matchPath($route['path'], $path);
             if ($route['method'] === $method && $params !== false) {
-                $this->runMiddlewares($route['middlewares']);
-
                 $body = $this->getRequestBody();
 
-                // TODO: Handler should take params and body as arguments we might want to abstract this into a request class
-                call_user_func($route['handler'], $params, $body);
+                // Combine middlewares and handler into a single callable chain
+                $this->runMiddlewaresAndHandler($route['middlewares'], $route['handler'], $params, $body);
                 return;
             }
         }
 
-        // TODO: Proper error handling also in route handlers
+        // TODO: Proper error handling
         http_response_code(404);
         echo "404 - Not Found";
     }
 
     /**
-     * store user navigation history in session
+     * Store user navigation history in session
      * @param string $path
      * @param Method $method
      */
@@ -100,7 +100,7 @@ class Router
 
         $params = [];
         foreach ($routeParts as $index => $routePart) {
-            if ($routePart[0] === ':') {
+            if (isset($routePart[0]) && $routePart[0] === ':') {
                 $params[substr($routePart, 1)] = $requestParts[$index];
             } elseif ($routePart !== $requestParts[$index]) {
                 return false;
@@ -111,18 +111,33 @@ class Router
     }
 
     /**
+     * Run middlewares and handler in a chain
      * @param array<callable> $middlewares
+     * @param callable $handler
+     * @param array<string, string> $params
+     * @param mixed $body
      */
-    private function runMiddlewares(array $middlewares): void
+    private function runMiddlewaresAndHandler(array $middlewares, callable $handler, array $params, mixed $body): void
     {
-        foreach ($middlewares as $middleware) {
-            $middleware();
-        }
+        $middlewareChain = array_reduce(
+            array_reverse($middlewares),
+            function ($next, $middleware) {
+                return function ($params, $body) use ($middleware, $next) {
+                    $middleware($params, $body, $next);
+                };
+            },
+            function ($params, $body) use ($handler) {
+                $handler($params, $body);
+            }
+        );
+
+        $middlewareChain($params, $body);
     }
 
     /**
      * @return array|string
      */
+    // TODO: Abstract to Request/Response classes
     private function getRequestBody(): array|string
     {
         $body = file_get_contents('php://input');
