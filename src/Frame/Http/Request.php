@@ -2,7 +2,7 @@
 
 namespace Frame\Http;
 
-use Frame\Sanitizer;
+use Frame\Utils\Sanitizer;
 use Frame\Validation\Validator;
 
 class Request

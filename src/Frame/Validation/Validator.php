@@ -34,10 +34,7 @@ namespace Frame\Validation;
  * ]);
  * ```
  */
-
-use Validation\ValidatorInterface;
-
-class Validator implements ValidatorInterface
+class Validator
 {
     private array $errors = [];
 

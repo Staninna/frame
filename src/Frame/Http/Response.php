@@ -74,8 +74,7 @@ class Response
         setcookie($name, '', time() - 3600, '/');
     }
 
-    public
-    function send(): void
+    public function send(): void
     {
         http_response_code($this->statusCode);
 
