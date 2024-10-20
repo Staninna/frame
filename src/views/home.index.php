@@ -90,6 +90,11 @@
 <body>
 <h1>Tasks</h1>
 
+<?php
+use models\Task;
+/** @var array<Task> $tasks */
+?>
+
 <?php foreach ($tasks as $task): ?>
     <div class="task">
         <h2><?= htmlspecialchars($task->title) ?></h2>
