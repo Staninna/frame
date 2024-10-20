@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL);
 
 require_once 'Frame/require.php';
 require_once 'UsersController.php';
@@ -32,17 +33,7 @@ $router->group('/api',
             $body = $request->body;
             $response->write("Creating user with data: " . json_encode($body));
         });
-    },
-    [
-        function (Request $request, Response $response, callable $next): void {
-            $response->write("Middleware: Logging request <br>");
-            $response->write("Request path: " . $request->path . "<br>");
-            $response->write("Request method: " . $request->method->value . "<br>");
-            $response->write("Request params: " . json_encode($request->params) . "<br>");
-            $response->write("End of logging middleware <br>");
-            $next($request, $response);
-        }
-    ]
+    }
 );
 
 $router->run();
