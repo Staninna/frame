@@ -7,12 +7,12 @@ use ReflectionException;
 
 class Task extends Model
 {
-    public int $id;
-    public string $title;
-    public string $beschrijving;
-    public string $status;
-    public int $verval_datum; // unix timestamp
-    public string $prioriteit;
+//    public int $id;
+//    public string $title;
+//    public string $beschrijving;
+//    public string $status;
+//    public int $verval_datum; // unix timestamp
+//    public string $prioriteit;
 
     // TODO: Timestamps created_at, updated_at
 

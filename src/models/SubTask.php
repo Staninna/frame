@@ -7,9 +7,9 @@ use ReflectionException;
 
 class SubTask extends Model
 {
-    public int $id;
-    public string $title;
-    public string $beschrijving;
+//    public int $id;
+//    public string $title;
+//    public string $beschrijving;
     public string $status;
     // TODO: Timestamps created_at, updated_at
 
