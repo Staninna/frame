@@ -10,9 +10,8 @@ class Request
     public Method $method;
     public string $path;
     public array $headers;
-    public array $queryParams;
     public mixed $body;
-    public array $params = [];
+    public array $params;
 
     private Validator $validator;
     private Sanitizer $sanitizer;
@@ -22,11 +21,26 @@ class Request
         $this->method = Method::from($_SERVER['REQUEST_METHOD'] ?? 'GET');
         $this->path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
         $this->headers = $this->getRequestHeaders();
-        $this->queryParams = $_GET ?? [];
+        $this->params = $this->getParams();
         $this->body = $this->getRequestBody();
 
         $this->validator = new Validator();
         $this->sanitizer = new Sanitizer();
+    }
+
+    public function validate(array $rules): bool
+    {
+        return $this->validator->validate($this->body, $rules);
+    }
+
+    public function sanitize(array $rules): array
+    {
+        return $this->sanitizer->sanitize($this->body, $rules);
+    }
+
+    public function getValidationErrors(): array
+    {
+        return $this->validator->getErrors();
     }
 
     private function getRequestHeaders(): array
@@ -65,18 +79,16 @@ class Request
         return $body;
     }
 
-    public function validate(array $rules): bool
+    private function getParams(): array
     {
-        return $this->validator->validate($this->body, $rules);
-    }
+        $params = [];
 
-    public function sanitize(array $rules): array
-    {
-        return $this->sanitizer->sanitize($this->body, $rules);
-    }
+        if (isset($_GET)) {
+            $params = array_merge($params, $_GET);
+        } else if (isset($_POST)) {
+            $params = array_merge($params, $_POST);
+        }
 
-    public function getValidationErrors(): array
-    {
-        return $this->validator->getErrors();
+        return $params;
     }
 }
