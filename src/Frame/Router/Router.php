@@ -66,7 +66,7 @@ class Router
     /**
      * @throws Exception
      */
-    private function add(Method $method, string $path, callable|array $handler, string $name = null, array $middlewares = []): Route
+    private function add(Method $method, string $path, callable|array $handler, string $name = null, array $middlewares = []): void
     {
         $route = new Route(
             $method,
@@ -83,8 +83,6 @@ class Router
             }
             $this->namedRoutes[$name] = $route;
         }
-
-        return $route;
     }
 
     // TODO: Add support for query parameters
