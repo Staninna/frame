@@ -9,6 +9,7 @@ use Frame\Http\Response;
 class Route
 {
     public string $path;
+    public array $params = [];
     public Method $method;
     /** @var callable|array */
     public $handler;
@@ -22,6 +23,8 @@ class Route
         $this->handler = $handler;
         $this->name = $name;
         $this->middlewares = $middlewares;
+
+        $this->params = $this->getParams();
     }
 
     public function __invoke(Request $request, Response $response): void
@@ -35,5 +38,27 @@ class Route
         } else {
             throw new \InvalidArgumentException("Invalid handler type");
         }
+    }
+
+    private function getParams(): array
+    {
+        $pathParts = explode('/', trim($this->path, '/'));
+
+        $params = [];
+        foreach ($pathParts as $index => $pathPart) {
+            if (isset($pathPart[0]) && $pathPart[0] === ':') {
+                $part = explode('/', trim($_SERVER['REQUEST_URI'], '/'))[$index];
+
+                if (str_contains($part, '?')) {
+                    $value = explode('?', $part)[0];
+                    $params[substr($pathPart, 1)] = $value;
+                    continue;
+                }
+
+                $params[substr($pathPart, 1)] = $part;
+            }
+        }
+
+        return $params;
     }
 }
