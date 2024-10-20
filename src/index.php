@@ -1,11 +1,12 @@
 <?php
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_NOTICE);
 
 require_once 'Frame/require.php';
 require_once 'UsersController.php';
 
 use Frame\Http\Request;
 use Frame\Http\Response;
+use Frame\Router\Route;
 use Frame\Router\Router;
 
 // TODO: Find a way to make statically/globally available
@@ -20,16 +21,16 @@ $router->group('/api',
         $router->get('/users/controller', [UsersController::class, 'index'], 'users.index');
 
         // Use closures
-        $router->get('/users', function (Request $request, Response $response): void {
+        $router->get('/users', function (Route $route, Request $request, Response $response): void {
             $response->write("Listing users");
         });
 
-        $router->get('/users/:id', function (Request $request, Response $response): void {
-            $id = htmlspecialchars($request->params['id']);
-            $response->write("User ID: " . $id);
-        });
+        $router->get('/users/:id', function (Route $route, Request $request, Response $response): void {
+            $id = htmlspecialchars($route->params['id']);
+            $response->write("User ID: " . $id . "<br>");
+        }, 'users.id');
 
-        $router->post('/users', function (Request $request, Response $response): void {
+        $router->post('/users', function (Route $route, Request $request, Response $response): void {
             $body = $request->body;
             $response->write("Creating user with data: " . json_encode($body));
         });

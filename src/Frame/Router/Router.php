@@ -7,6 +7,7 @@ use Frame\Http\Method;
 use Frame\Http\Request;
 use Frame\Http\Response;
 
+// TODO: Make middlewares a class that extents Middleware or smth
 class Router
 {
     /** @var Route[] */
@@ -184,7 +185,7 @@ class Router
         }
 
         foreach ($routeParts as $index => $routePart) {
-            if ($routePart !== $requestParts[$index]) {
+            if ($routePart !== $requestParts[$index] && $routePart[0] !== ':') {
                 return false;
             }
         }
@@ -208,7 +209,7 @@ class Router
                 };
             },
             function (Request $request, Response $response) use ($route) {
-                $route($request, $response);
+                $route($route, $request, $response);
             }
         );
 

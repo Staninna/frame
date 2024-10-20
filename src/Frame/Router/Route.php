@@ -27,14 +27,14 @@ class Route
         $this->params = $this->getParams();
     }
 
-    public function __invoke(Request $request, Response $response): void
+    public function __invoke(Route $route, Request $request, Response $response): void
     {
         if (is_array($this->handler)) {
             [$controller, $method] = $this->handler;
             $controller = new $controller();
-            $controller->$method($request, $response);
+            $controller->$method($route, $request, $response);
         } elseif (is_callable($this->handler)) {
-            ($this->handler)($request, $response);
+            ($this->handler)($route, $request, $response);
         } else {
             throw new \InvalidArgumentException("Invalid handler type");
         }
