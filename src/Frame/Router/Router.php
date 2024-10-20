@@ -85,18 +85,28 @@ class Router
         }
     }
 
-    // TODO: Add support for query parameters
-
     /**
-     * @throws Exception
+     * Generate a URL for a named route with optional query parameters
+     *
+     * @param string $name The name of the route
+     * @param array $queryParams Optional query parameters
+     * @return string The generated URL
+     * @throws Exception If the route name does not exist
      */
-    public function url(string $name): string
+    public function url(string $name, array $queryParams = []): string
     {
         if (!isset($this->namedRoutes[$name])) {
             throw new Exception("Route name '{$name}' does not exist.");
         }
 
-        return $this->namedRoutes[$name]['path'];
+        $url = $this->namedRoutes[$name]->path;
+
+        if (!empty($queryParams)) {
+            $queryString = http_build_query($queryParams);
+            $url .= '?' . $queryString;
+        }
+
+        return $url;
     }
 
     public function group(string $prefix, callable $callback, array $middlewares = []): void
