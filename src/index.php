@@ -13,9 +13,7 @@ use Frame\Router\Router;
 $router = new Router();
 
 $router->group('/api',
-    /**
-     * @throws Exception
-     */
+    /** @throws Exception */
     function (Router $router): void {
         // Use controller
         $router->get('/users/controller', [UsersController::class, 'index'], 'users.index');
