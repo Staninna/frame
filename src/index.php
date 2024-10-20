@@ -1,6 +1,9 @@
 <?php
 error_reporting(E_ALL & ~E_NOTICE);
 
+if (false)
+    require_once 'seed.php';
+
 require_once 'Frame/require.php';
 require_once 'controllers/UsersController.php';
 require_once 'models/User.php';
