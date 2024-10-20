@@ -66,7 +66,7 @@ class Router
     /**
      * @throws Exception
      */
-    private function add(Method $method, string $path, callable|array $handler, string $name = null, array $middlewares = []): void
+    private function add(Method $method, string $path, callable|array $handler, string $name = null, array $middlewares = []): Route
     {
         $route = new Route(
             $method,
@@ -83,9 +83,12 @@ class Router
             }
             $this->namedRoutes[$name] = $route;
         }
+
+        return $route;
     }
 
     // TODO: Add support for query parameters
+
     /**
      * @throws Exception
      */
@@ -201,13 +204,7 @@ class Router
                 };
             },
             function (Request $request, Response $response) use ($route) {
-                if (is_array($route->handler)) {
-                    [$controller, $method] = $route->handler;
-                    $controller = new $controller();
-                    $controller->$method($request, $response);
-                } else {
-                    $route->handler($request, $response);
-                }
+                $route($request, $response);
             }
         );
 
