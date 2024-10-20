@@ -9,11 +9,12 @@ use Frame\Http\Response;
 
 class Router
 {
-    /** @var array<array{method: string, path: string, handler: callable|array, middlewares: array<callable>}> */
+    /** @var Route[] */
     private array $routes = [];
     private string $prefix = '';
     /** @var array<callable> */
     private array $groupMiddlewares = [];
+    /** @var Route[] */
     private array $namedRoutes = [];
     private int $maxHistory;
 
@@ -25,21 +26,62 @@ class Router
     /**
      * @throws Exception
      */
-    public function add(Method $method, string $path, callable|array $handler, string $name = null, array $middlewares = []): void
+    public function get(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
     {
-        $route = [
-            'method' => $method,
-            'path' => $this->prefix . $path,
-            'handler' => $handler,
-            'middlewares' => array_merge($this->groupMiddlewares, $middlewares)
-        ];
+        $this->add(Method::GET, $path, $handler, $name, $middlewares);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function post(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
+    {
+        $this->add(Method::POST, $path, $handler, $name, $middlewares);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function put(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
+    {
+        $this->add(Method::PUT, $path, $handler, $name, $middlewares);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function delete(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
+    {
+        $this->add(Method::DELETE, $path, $handler, $name, $middlewares);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function patch(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
+    {
+        $this->add(Method::PATCH, $path, $handler, $name, $middlewares);
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function add(Method $method, string $path, callable|array $handler, string $name = null, array $middlewares = []): void
+    {
+        $route = new Route(
+            $method,
+            $this->prefix . $path,
+            $handler,
+            $name,
+            array_merge($this->groupMiddlewares, $middlewares)
+        );
 
         $this->routes[] = $route;
         if ($name !== null) {
             if (isset($this->namedRoutes[$name])) {
                 throw new Exception("Route name '{$name}' is already in use.");
             }
-            $this->namedRoutes[$name] = $this->routes[count($this->routes) - 1];
+            $this->namedRoutes[$name] = $route;
         }
     }
 
@@ -82,16 +124,16 @@ class Router
         $this->addNavigationHistory($request->path, $request->method);
 
         foreach ($this->routes as $route) {
-            $params = $this->matchPath($route['path'], $request->path);
-            if ($route['method'] === $request->method && $params !== false) {
+            $params = $this->matchPath($route->path, $request->path);
+            if ($route->method === $request->method && $params !== false) {
                 $request->params = $params;
 
-                $this->runMiddlewaresAndHandler($route['middlewares'], $route['handler'], $request, $response);
+                $this->runMiddlewaresAndHandler($route, $request, $response);
                 return;
             }
         }
 
-        // Proper error handling
+        // TODO: Proper error handling
         $response->setStatusCode(404);
         $response->write("404 - Not Found");
         $response->send();
@@ -145,27 +187,26 @@ class Router
 
     /**
      * Run middlewares and handler in a chain
-     * @param array<callable> $middlewares
-     * @param callable|array $handler
+     * @param Route $route
      * @param Request $request
      * @param Response $response
      */
-    private function runMiddlewaresAndHandler(array $middlewares, callable|array $handler, Request $request, Response $response): void
+    private function runMiddlewaresAndHandler(Route $route, Request $request, Response $response): void
     {
         $middlewareChain = array_reduce(
-            array_reverse($middlewares),
+            array_reverse($route->middlewares),
             function ($next, $middleware) {
                 return function (Request $request, Response $response) use ($middleware, $next) {
                     $middleware($request, $response, $next);
                 };
             },
-            function (Request $request, Response $response) use ($handler) {
-                if (is_array($handler)) {
-                    [$controller, $method] = $handler;
+            function (Request $request, Response $response) use ($route) {
+                if (is_array($route->handler)) {
+                    [$controller, $method] = $route->handler;
                     $controller = new $controller();
                     $controller->$method($request, $response);
                 } else {
-                    $handler($request, $response);
+                    $route->handler($request, $response);
                 }
             }
         );
