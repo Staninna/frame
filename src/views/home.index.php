@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Users</title>
+    <title>Home</title>
 </head>
 <body>
-<h1>Users</h1>
+<h1>Home</h1>
 
-<p>Name: <?= $name ?></p>
-<p>Email: <?= $email ?></p>
+<p>Home page</p>
 </body>
 </html>
