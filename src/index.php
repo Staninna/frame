@@ -16,7 +16,7 @@ $router->group('/api',
      */
     function (Router $router): void {
         // Use controller
-        $router->get('/users/controller', [UsersController::class, 'index']);
+        $router->get('/users/controller', [UsersController::class, 'index'], 'users.index');
 
         // Use closures
         $router->get('/users', function (Request $request, Response $response): void {
