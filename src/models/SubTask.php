@@ -10,7 +10,8 @@ class SubTask extends Model
 //    public int $id;
 //    public string $title;
 //    public string $beschrijving;
-    public string $status;
+//    public string $status;
+
     // TODO: Timestamps created_at, updated_at
 
     public function __construct(array $attributes = [])
