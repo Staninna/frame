@@ -15,10 +15,6 @@ class HomeController extends BaseController
     {
         $tasks = Task::all();
 
-        echo "<pre>";
-        print_r($tasks);
-        echo "</pre>";
-
-        $this->view('home.index');
+        $this->view('home.index', compact('tasks'));
     }
 }
