@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     && docker-php-ext-install zip
 
-# Install MySQLi
-RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
+# Install MySQLi and PDO MySQL
+RUN docker-php-ext-install mysqli pdo pdo_mysql && docker-php-ext-enable mysqli pdo pdo_mysql
 
 # Install Xdebug
 RUN pecl install xdebug && docker-php-ext-enable xdebug
