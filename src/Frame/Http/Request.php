@@ -11,7 +11,7 @@ class Request
     public string $path;
     public array $headers;
     public mixed $body;
-    public array $params;
+    public array $queryParams;
 
     private Validator $validator;
     private Sanitizer $sanitizer;
@@ -21,7 +21,7 @@ class Request
         $this->method = Method::from($_SERVER['REQUEST_METHOD'] ?? 'GET');
         $this->path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
         $this->headers = $this->getRequestHeaders();
-        $this->params = $this->getParams();
+        $this->queryParams = $this->getQueryParams();
         $this->body = $this->getRequestBody();
 
         $this->validator = new Validator();
@@ -79,13 +79,15 @@ class Request
         return $body;
     }
 
-    private function getParams(): array
+    private function getQueryParams(): array
     {
         $params = [];
 
         if (isset($_GET)) {
             $params = array_merge($params, $_GET);
-        } else if (isset($_POST)) {
+        }
+
+        if (isset($_POST)) {
             $params = array_merge($params, $_POST);
         }
 
