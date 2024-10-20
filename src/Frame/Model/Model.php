@@ -6,6 +6,7 @@ use PDO;
 use ReflectionClass;
 use ReflectionException;
 
+// TODO: Figure out why properties are not working see: User.php, Task.php, SubTask.php
 abstract class Model
 {
     protected string $table;
