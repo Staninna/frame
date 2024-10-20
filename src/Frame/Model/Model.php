@@ -7,6 +7,7 @@ use ReflectionClass;
 use ReflectionException;
 
 // TODO: Figure out why properties are not working see: User.php, Task.php, SubTask.php
+// TODO: Add logging for the database queries in a log file or something to check if there are redundant queries etc.
 abstract class Model
 {
     protected string $table;
