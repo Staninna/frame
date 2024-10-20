@@ -125,10 +125,7 @@ class Router
         $this->addNavigationHistory($request->path, $request->method);
 
         foreach ($this->routes as $route) {
-            $params = $this->matchPath($route->path, $request->path);
-            if ($route->method === $request->method && $params !== false) {
-                $request->params = $params;
-
+            if ($route->method === $request->method && $this->matchPath($route->path, $request->path)) {
                 $this->runMiddlewaresAndHandler($route, $request, $response);
                 return;
             }
@@ -163,9 +160,11 @@ class Router
     }
 
     /**
-     * @return array<string, string>|false
+     * @param string $routePath
+     * @param string $requestPath
+     * @return bool
      */
-    private function matchPath(string $routePath, string $requestPath): array|false
+    private function matchPath(string $routePath, string $requestPath): bool
     {
         $routeParts = explode('/', trim($routePath, '/'));
         $requestParts = explode('/', trim($requestPath, '/'));
@@ -174,16 +173,13 @@ class Router
             return false;
         }
 
-        $params = [];
         foreach ($routeParts as $index => $routePart) {
-            if (isset($routePart[0]) && $routePart[0] === ':') {
-                $params[substr($routePart, 1)] = $requestParts[$index];
-            } elseif ($routePart !== $requestParts[$index]) {
+            if ($routePart !== $requestParts[$index]) {
                 return false;
             }
         }
 
-        return $params;
+        return true;
     }
 
     /**
