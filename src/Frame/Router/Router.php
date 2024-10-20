@@ -25,7 +25,7 @@ class Router
     }
 
     /**
-     * @throws Exception
+     * @throws Exception If the route name already exists
      */
     public function get(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
     {
@@ -33,7 +33,7 @@ class Router
     }
 
     /**
-     * @throws Exception
+     * @throws Exception If the route name already exists
      */
     public function post(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
     {
@@ -41,7 +41,7 @@ class Router
     }
 
     /**
-     * @throws Exception
+     * @throws Exception If the route name already exists
      */
     public function put(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
     {
@@ -49,7 +49,7 @@ class Router
     }
 
     /**
-     * @throws Exception
+     * @throws Exception If the route name already exists
      */
     public function delete(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
     {
@@ -57,11 +57,35 @@ class Router
     }
 
     /**
-     * @throws Exception
+     * @throws Exception If the route name already exists
      */
     public function patch(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
     {
         $this->add(Method::PATCH, $path, $handler, $name, $middlewares);
+    }
+
+    /**
+     * @throws Exception If the route name already exists
+     */
+    public function options(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
+    {
+        $this->add(Method::OPTIONS, $path, $handler, $name, $middlewares);
+    }
+
+    /**
+     * @throws Exception If the route name already exists
+     */
+    public function head(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
+    {
+        $this->add(Method::HEAD, $path, $handler, $name, $middlewares);
+    }
+
+    /**
+     * @throws Exception If the route name already exists
+     */
+    public function connect(string $path, callable|array $handler, string $name = null, array $middlewares = []): void
+    {
+        $this->add(Method::CONNECT, $path, $handler, $name, $middlewares);
     }
 
     /**
