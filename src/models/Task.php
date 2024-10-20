@@ -31,8 +31,8 @@ class Task extends Model
     /**
      * @throws ReflectionException
      */
-    public function user(): User
+    public function users(): array
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsToMany(User::class);
     }
 }

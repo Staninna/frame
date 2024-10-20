@@ -4,20 +4,22 @@ CREATE TABLE users
     id         INT AUTO_INCREMENT PRIMARY KEY,
     naam       VARCHAR(255) NOT NULL,
     email      VARCHAR(255) NOT NULL UNIQUE,
-    wachtwoord VARCHAR(255) NOT NULL
+    wachtwoord VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Create tasks table
 CREATE TABLE tasks
 (
     id           INT AUTO_INCREMENT PRIMARY KEY,
-    user_id      INT          NOT NULL,
     title        VARCHAR(255) NOT NULL,
     beschrijving TEXT,
     status       VARCHAR(50)  NOT NULL,
-    verval_datum INT UNSIGNED, -- unix timestamp
+    verval_datum INT UNSIGNED NOT NULL,
     prioriteit   VARCHAR(50)  NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Create sub_tasks table
@@ -28,9 +30,17 @@ CREATE TABLE sub_tasks
     title        VARCHAR(255) NOT NULL,
     beschrijving TEXT,
     status       VARCHAR(50)  NOT NULL,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE
 );
 
--- Add indexes for better performance
-CREATE INDEX idx_tasks_user_id ON tasks (user_id);
-CREATE INDEX idx_sub_tasks_task_id ON sub_tasks (task_id);
+-- Create user_task pivot table for many-to-many relationship
+CREATE TABLE user_task
+(
+    user_id INT NOT NULL,
+    task_id INT NOT NULL,
+    PRIMARY KEY (user_id, task_id),
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE
+);
