@@ -31,6 +31,15 @@ abstract class Model
         self::$db = $connection;
     }
 
+    public static function all(): array
+    {
+        $model = new static();
+        $stmt = self::$db->prepare("SELECT * FROM $model->table");
+        $stmt->execute();
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(fn($result) => new static($result), $results);
+    }
+
     public static function find($id): ?static
     {
         $model = new static();
