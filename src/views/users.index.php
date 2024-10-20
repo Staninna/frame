@@ -7,7 +7,7 @@
 <body>
 <h1>Users</h1>
 
-<p>Name: <?= /** @var string $name */ $name ?></p>
-<p>Email: <?= /** @var string $email */ $email ?></p>
+<p>Name: <?= $name ?></p>
+<p>Email: <?= $email ?></p>
 </body>
 </html>

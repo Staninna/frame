@@ -1,5 +1,7 @@
 <?php
 
+namespace controllers;
+
 use Frame\Controller\BaseController;
 use Frame\Http\Request;
 use Frame\Http\Response;
@@ -12,6 +14,6 @@ class UsersController extends BaseController
         $name = $request->queryParams['name'] ?? 'world';
         $email = $request->queryParams['email'] ?? 'world@example.com';
 
-        $this->view('users/index', compact('name', 'email'));
+        $this->view('users.index', compact('name', 'email'));
     }
 }

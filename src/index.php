@@ -2,8 +2,9 @@
 error_reporting(E_ALL & ~E_NOTICE);
 
 require_once 'Frame/require.php';
-require_once 'UsersController.php';
+require_once 'controllers/UsersController.php';
 
+use controllers\UsersController;
 use Frame\Http\Request;
 use Frame\Http\Response;
 use Frame\Router\Route;
