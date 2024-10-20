@@ -2,6 +2,7 @@
 
 namespace Frame\Router;
 
+use Exception;
 use Frame\Http\Method;
 use Frame\Http\Request;
 use Frame\Http\Response;
@@ -13,7 +14,7 @@ class Router
     private string $prefix = '';
     /** @var array<callable> */
     private array $groupMiddlewares = [];
-
+    private array $namedRoutes = [];
     private int $maxHistory;
 
     public function __construct(int $maxHistory = 100)
@@ -21,14 +22,38 @@ class Router
         $this->maxHistory = $maxHistory;
     }
 
-    public function add(Method $method, string $path, callable|array $handler, array $middlewares = []): void
+    /**
+     * @throws Exception
+     */
+    public function add(Method $method, string $path, callable|array $handler, string $name = null, array $middlewares = []): void
     {
-        $this->routes[] = [
+        $route = [
             'method' => $method,
             'path' => $this->prefix . $path,
             'handler' => $handler,
             'middlewares' => array_merge($this->groupMiddlewares, $middlewares)
         ];
+
+        $this->routes[] = $route;
+        if ($name !== null) {
+            if (isset($this->namedRoutes[$name])) {
+                throw new Exception("Route name '{$name}' is already in use.");
+            }
+            $this->namedRoutes[$name] = $this->routes[count($this->routes) - 1];
+        }
+    }
+
+    // TODO: Add support for query parameters
+    /**
+     * @throws Exception
+     */
+    public function url(string $name): string
+    {
+        if (!isset($this->namedRoutes[$name])) {
+            throw new Exception("Route name '{$name}' does not exist.");
+        }
+
+        return $this->namedRoutes[$name]['path'];
     }
 
     public function group(string $prefix, callable $callback, array $middlewares = []): void
@@ -47,7 +72,9 @@ class Router
 
     public function run(): void
     {
-        session_start();
+        if (!session_id()) {
+            session_start();
+        }
 
         $request = new Request();
         $response = new Response();
@@ -75,7 +102,7 @@ class Router
      * @param string $path Path
      * @param Method $method HTTP method
      */
-    public function addNavigationHistory(string $path, Method $method): void
+    private function addNavigationHistory(string $path, Method $method): void
     {
         if (!isset($_SESSION['navigation_history'])) {
             $_SESSION['navigation_history'] = [];
