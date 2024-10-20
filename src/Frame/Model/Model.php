@@ -139,18 +139,20 @@ abstract class Model
     public function hasMany($relatedClass, $foreignKey = null, $localKey = null): array
     {
         $localKey = $localKey ?: $this->primaryKey;
-        $foreignKey = $foreignKey ?: strtolower(get_class($this)) . '_id';
+        $foreignKey = $foreignKey ?: strtolower(class_basename(get_class($this))) . '_id';
 
         $relatedModel = new $relatedClass();
 
-        $stmt = self::$db->prepare("SELECT * FROM $relatedModel->table WHERE $foreignKey = :id");
+        $stmt = self::$db->prepare("SELECT * FROM `{$relatedModel->table}` WHERE `{$foreignKey}` = :id");
         $stmt->execute(['id' => $this->attributes[$localKey]]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Map results to related model instances
-        $this->relations[debug_backtrace()[1]['function']] = array_map(fn($result) => new $relatedClass($result), $results);
-        return $this->relations[debug_backtrace()[1]['function']];
+        $relationName = debug_backtrace()[1]['function'];
+        $this->relations[$relationName] = array_map(fn($result) => new $relatedClass($result), $results);
+        return $this->relations[$relationName]; // TODO.NOTE: Might wanna do this in other methods too
     }
+
 
     /**
      * Retrieves the related model that the current model belongs to
@@ -313,4 +315,10 @@ abstract class Model
         }
         return $this;
     }
+}
+
+function class_basename($class): bool|string
+{
+    $parts = explode('\\', $class);
+    return end($parts);
 }
