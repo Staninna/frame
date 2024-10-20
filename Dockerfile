@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     && docker-php-ext-install zip
 
+# Install MySQLi
+RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
+
 # Install Xdebug
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 
@@ -19,7 +22,7 @@ RUN echo '<Directory /var/www/html/>\n\
 RUN a2enconf custom-directory
 
 # Set correct permissions for .htaccess
-copy .htaccess /var/www/html/.htaccess
+COPY .htaccess /var/www/html/.htaccess
 RUN chown www-data:www-data /var/www/html/.htaccess && chmod 644 /var/www/html/.htaccess
 
 # Configure Xdebug
