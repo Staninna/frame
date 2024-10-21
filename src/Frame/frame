@@ -1,0 +1,17 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/Cli/Command/require.php';
+
+use Frame\Cli\Command\CommandLoader;
+
+$commandLoader = new CommandLoader();
+
+$commandName = $argv[1] ?? null;
+$arguments = array_slice($argv, 2);
+
+if ($commandName) {
+    $commandLoader->runCommand($commandName, $arguments);
+} else {
+    $commandLoader->help();
+}
