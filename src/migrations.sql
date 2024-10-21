@@ -36,7 +36,7 @@ CREATE TABLE sub_tasks
 );
 
 -- Create user_task pivot table for many-to-many relationship
-CREATE TABLE user_task
+CREATE TABLE task_user
 (
     user_id INT NOT NULL,
     task_id INT NOT NULL,
