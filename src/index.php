@@ -1,5 +1,6 @@
 <?php
 error_reporting(E_ALL & ~E_NOTICE);
+define('DEBUG', true);
 
 if (false)
     require_once 'seed.php';

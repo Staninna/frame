@@ -37,6 +37,7 @@ abstract class Model
     {
         $model = new static();
         $stmt = self::$db->prepare("SELECT * FROM $model->table");
+        log_query($stmt->queryString);
         $stmt->execute();
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return array_map(fn($result) => new static($result), $results);
@@ -46,6 +47,7 @@ abstract class Model
     {
         $model = new static();
         $stmt = self::$db->prepare("SELECT * FROM $model->table WHERE $model->primaryKey = :id");
+        log_query($stmt->queryString, ['id' => $id]);
         $stmt->execute(['id' => $id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ? new static($result) : null;
@@ -55,6 +57,7 @@ abstract class Model
     {
         $model = new static();
         $stmt = self::$db->prepare("SELECT * FROM $model->table WHERE $column $operator :value");
+        log_query($stmt->queryString, ['value' => $value]);
         $stmt->execute(['value' => $value]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return array_map(fn($result) => new static($result), $results);
@@ -75,6 +78,7 @@ abstract class Model
         $columns = implode(', ', array_keys($this->attributes));
         $placeholders = ':' . implode(', :', array_keys($this->attributes));
         $stmt = self::$db->prepare("INSERT INTO $this->table ($columns) VALUES ($placeholders)");
+        log_query($stmt->queryString, [$this->attributes]);
         $stmt->execute($this->attributes);
         $this->attributes[$this->primaryKey] = self::$db->lastInsertId();
     }
@@ -83,12 +87,14 @@ abstract class Model
     {
         $setClause = implode(', ', array_map(fn($key) => "$key = :$key", array_keys($this->attributes)));
         $stmt = self::$db->prepare("UPDATE $this->table SET $setClause WHERE $this->primaryKey = :$this->primaryKey");
+        log_query($stmt->queryString, [$this->attributes]);
         $stmt->execute($this->attributes);
     }
 
     public function delete(): void
     {
         $stmt = self::$db->prepare("DELETE FROM $this->table WHERE $this->primaryKey = :$this->primaryKey");
+        log_query($stmt->queryString, [$this->primaryKey => $this->attributes[$this->primaryKey]]);
         $stmt->execute([$this->primaryKey => $this->attributes[$this->primaryKey]]);
     }
 
@@ -145,6 +151,7 @@ abstract class Model
         $relatedModel = new $relatedClass();
 
         $stmt = self::$db->prepare("SELECT * FROM `{$relatedModel->table}` WHERE `{$foreignKey}` = :id");
+        log_query($stmt->queryString, ['id' => $this->attributes[$localKey]]);
         $stmt->execute(['id' => $this->attributes[$localKey]]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -180,6 +187,7 @@ abstract class Model
         $relatedModel = new $relatedClass();
 
         $stmt = self::$db->prepare("SELECT * FROM $relatedModel->table WHERE $ownerKey = :id");
+        log_query($stmt->queryString, ['id' => $this->attributes[$foreignKey]]);
         $stmt->execute(['id' => $this->attributes[$foreignKey]]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -242,7 +250,7 @@ abstract class Model
      */
     public function belongsToMany(string $relatedClass, string $pivotTable = null, string $foreignPivotKey = null, string $relatedPivotKey = null): array
     {
-        $foreignPivotKey = $foreignPivotKey ?: strtolower(get_class($this)) . '_id';
+        $foreignPivotKey = $foreignPivotKey ?: strtolower(class_basename(get_class($this))) . '_id';
         $relatedPivotKey = $relatedPivotKey ?: strtolower((new ReflectionClass($relatedClass))->getShortName()) . '_id';
         $pivotTable = $pivotTable ?: $this->guessPivotTableName($relatedClass);
 
@@ -254,6 +262,7 @@ abstract class Model
             JOIN $pivotTable ON $relatedModel->table.$relatedModel->primaryKey = $pivotTable.$relatedPivotKey
             WHERE $pivotTable.$foreignPivotKey = :id
         ");
+        log_query($stmt->queryString, ['id' => $this->attributes[$this->primaryKey]]);
 
         $stmt->execute(['id' => $this->attributes[$this->primaryKey]]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -322,4 +331,19 @@ function class_basename($class): bool|string
 {
     $parts = explode('\\', $class);
     return end($parts);
+}
+
+global $queryBuffer;
+function log_query(string $query, mixed $params = null): void
+{
+    global $queryBuffer;
+
+    // Prepare the log entry
+    $logEntry = date('Y-m-d H:i:s') . " - " . $query;
+    if ($params) {
+        $logEntry .= "\nParameters: " . json_encode($params);
+    }
+
+    // Add the log entry to the global buffer
+    $queryBuffer[] = $logEntry;
 }
