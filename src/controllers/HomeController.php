@@ -8,13 +8,15 @@ use Frame\Http\Response;
 use Frame\Router\Route;
 
 use models\Task;
+use models\User;
 
 class HomeController extends BaseController
 {
     public function index(Route $route, Request $request, Response $response): void
     {
         $tasks = Task::all();
+        $users = User::all();
 
-        $this->view('home.index', compact('tasks'));
+        $this->view('home.index', compact('tasks', 'users'));
     }
 }

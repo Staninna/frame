@@ -71,6 +71,20 @@
             font-weight: bold;
         }
 
+        .users-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .user {
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
         .status-pending {
             background-color: #f39c12;
             color: #fff;
@@ -91,8 +105,9 @@
 <h1>Tasks</h1>
 
 <?php
-use models\Task;
+use models\{Task, User};
 /** @var array<Task> $tasks */
+/** @var array<User> $users */
 ?>
 
 <?php foreach ($tasks as $task): ?>
@@ -107,6 +122,18 @@ use models\Task;
             </p>
             <p>Due: <?= htmlspecialchars(date('Y-m-d', $task->verval_datum)) ?></p>
             <p>Priority: <?= htmlspecialchars($task->prioriteit) ?></p>
+        </div>
+
+        <div class="users">
+            <h3>Users</h3>
+            <div class="users-list">
+                <?php foreach ($task->users() as $user): ?>
+                    <div class="user">
+                        <h4><?= htmlspecialchars($user->naam) ?></h4>
+                        <p><?= htmlspecialchars($user->email) ?></p>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
 
         <?php if (!empty($task->subTasks())): ?>
