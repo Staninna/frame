@@ -192,9 +192,9 @@ abstract class Model
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (count($result) > 1) {
-            if (DEBUG) {
-                echo "Warning: Multiple results found for belongsTo relationship. Only the first result will be returned.";
-            }
+//            if (DEBUG) {
+            echo "Warning: Multiple results found for belongsTo relationship. Only the first result will be returned.";
+//            }
         }
 
         $this->relations[debug_backtrace()[1]['function']] = $result ? new $relatedClass($result) : null;
@@ -222,9 +222,9 @@ abstract class Model
         $results = $this->hasMany($relatedClass, $foreignKey, $localKey);
 
         if (count($results) > 1) {
-            if (DEBUG) {
-                echo "Warning: Multiple results found for hasOne relationship. Only the first result will be returned.";
-            }
+//            if (DEBUG) {
+            echo "Warning: Multiple results found for hasOne relationship. Only the first result will be returned.";
+//            }
         }
 
         return $results ? $results[0] : null;
