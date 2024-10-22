@@ -9,3 +9,4 @@ require_once 'Controller/BaseController.php';
 require_once 'Model/Model.php';
 require_once 'Validation/Validator.php';
 require_once 'Utils/Sanitizer.php';
+require_once 'Boot/Bootstrap.php';
