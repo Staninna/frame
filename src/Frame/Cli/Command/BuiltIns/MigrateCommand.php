@@ -3,8 +3,11 @@
 namespace Frame\Cli\Command\BuiltIns;
 
 use Frame\Cli\Command\Command;
+use Frame\Cli\Db\Migration;
 use PDO;
+use RuntimeException;
 
+// Seems unused but gets dynamically loaded by the command loader
 class MigrateCommand extends Command
 {
     private PDO $pdo;
@@ -38,6 +41,7 @@ class MigrateCommand extends Command
 
     public function run($arguments): void
     {
+        require_once __DIR__ . '/../../Db/Migration.php';
         $this->createMigrationsTableIfNotExists();
         $appliedMigrations = $this->getAppliedMigrations();
         $availableMigrations = $this->getAvailableMigrations();
@@ -45,15 +49,28 @@ class MigrateCommand extends Command
         $migrationsToApply = array_diff($availableMigrations, $appliedMigrations);
 
         if (empty($migrationsToApply)) {
+            echo "--------------------------------------------------------------------------------\n";
             echo "No new migrations to apply.\n";
+            echo "--------------------------------------------------------------------------------\n";
             return;
         }
 
+        echo "--------------------------------------------------------------------------------\n";
+        echo "Applying " . count($migrationsToApply) . " migration(s)...\n";
+        echo "--------------------------------------------------------------------------------\n";
+
+        $failed = 0;
         foreach ($migrationsToApply as $migration) {
-            $this->applyMigration($migration);
+            echo "Applying migration: $migration\n";
+            $this->applyMigration($migration, $failed);
         }
 
-        echo "All migrations applied successfully.\n";
+        echo "--------------------------------------------------------------------------------\n";
+        echo "Applied " . count($migrationsToApply) . " migration(s) successfully.\n";
+        if ($failed > 0) {
+            echo "Failed to apply $failed migration(s).\n";
+        }
+        echo "--------------------------------------------------------------------------------\n";
     }
 
     private function createMigrationsTableIfNotExists(): void
@@ -77,34 +94,71 @@ class MigrateCommand extends Command
     {
         $files = scandir($this->migrationsPath);
         return array_filter($files, function ($file) {
-            return preg_match('/^\d+_.*\.php$/', $file);
+            return preg_match('/^\d+_.*$/', $file);
         });
     }
 
-    private function applyMigration(string $migration): void
+    private function applyMigration(string $migration, int &$failed): void
     {
-        // TODO: Figure out how this works seems to look fine didnt test yet
         require_once $this->migrationsPath . '/' . $migration;
 
-        $className = 'Migration_' . pathinfo($migration, PATHINFO_FILENAME);
-        $instance = new $className();
+        $className = $this->getMigrationClassName($migration);
+        $fullClassName = "migrations\\$className"; // TODO: Make this configurable in config in sync with migrations path
 
-        echo "Applying migration: $className\n";
-        echo "Migration file: $migration\n";
+        if (!class_exists($fullClassName)) {
+            throw new RuntimeException("Migration class '$fullClassName' not found in file '$migration'");
+        }
+
+        $instance = new $fullClassName();
+
+        if (!$instance instanceof Migration) {
+            throw new RuntimeException("Migration class '$fullClassName' must extend Frame\\Cli\\Db\\Migration");
+        }
 
         $this->pdo->beginTransaction();
 
         try {
+            if (!method_exists($instance, 'up')) {
+                throw new RuntimeException("Up method not found in migration $migration");
+            }
+
             $instance->up($this->pdo);
-            $this->pdo->exec("INSERT INTO migrations (migration) VALUES (:migration)");
             $stmt = $this->pdo->prepare("INSERT INTO migrations (migration) VALUES (:migration)");
             $stmt->execute(['migration' => $migration]);
-            $this->pdo->commit();
+
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->commit();
+            }
             echo "Applied migration: $migration\n";
         } catch (\Exception $e) {
-            $this->pdo->rollBack();
             echo "Failed to apply migration $migration: " . $e->getMessage() . "\n";
+            $failed++;
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
             exit(1);
         }
+    }
+
+    /**
+     * Converts a migration filename to a proper class name.
+     *
+     * Examples:
+     * - "0000_create_users.php" -> "CreateUsersMigration"
+     * - "0001_create_tasks.php" -> "CreateTasksMigration"
+     * - "0002_create_task_user.php" -> "CreateTaskUserMigration"
+     * - "000000000213243_update_users.php" -> "UpdateUsersMigration"
+     */
+    private function getMigrationClassName(string $migration): string
+    {
+        // Remove the numeric prefix and .php extension
+        $withoutNumber = substr(strstr($migration, '_'), 1);
+        $withoutExtension = str_replace('.php', '', $withoutNumber);
+
+        // Convert to proper case and remove underscores
+        $words = str_replace('_', ' ', $withoutExtension);
+        $camelCase = str_replace(' ', '', ucwords($words));
+
+        return $camelCase . 'Migration';
     }
 }
