@@ -2,13 +2,12 @@
 
 namespace controllers;
 
+use app\models\Task;
+use app\models\User;
 use Frame\Controller\BaseController;
 use Frame\Http\Request;
 use Frame\Http\Response;
 use Frame\Router\Route;
-
-use models\Task;
-use models\User;
 
 class HomeController extends BaseController
 {

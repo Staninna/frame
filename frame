@@ -1,9 +1,11 @@
 #!/usr/bin/env php
 <?php
 
-require_once __DIR__ . '/Cli/Command/require.php';
+// TODO: For whole project make a define BASE_PATH and base all paths on that no relative clusterfucking anymore PLEASE!!!
 
-use Frame\Cli\Command\CommandLoader;
+require_once __DIR__ . '/src/Frame/Cli/Command/require.php';
+
+use src\Frame\Cli\Command\CommandLoader;
 
 $commandLoader = new CommandLoader();
 

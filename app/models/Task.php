@@ -1,30 +1,38 @@
 <?php
 
-namespace models;
+namespace app\models;
 
-use Frame\Model\Model;
 use ReflectionException;
+use Frame\Model\Model;
 
-class SubTask extends Model
+class Task extends Model
 {
 //    public int $id;
 //    public string $title;
 //    public string $beschrijving;
 //    public string $status;
+//    public int $verval_datum; // unix timestamp
+//    public string $prioriteit;
 
     // TODO: Timestamps created_at, updated_at
+
 
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        $this->table = 'sub_tasks';
+        $this->table = 'tasks';
+    }
+
+    public function subTasks(): array
+    {
+        return $this->hasMany(SubTask::class);
     }
 
     /**
      * @throws ReflectionException
      */
-    public function task(): Task
+    public function users(): array
     {
-        return $this->belongsTo(Task::class);
+        return $this->belongsToMany(User::class);
     }
 }

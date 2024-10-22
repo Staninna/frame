@@ -158,7 +158,7 @@ abstract class Model
         // Map results to related model instances
         $relationName = debug_backtrace()[1]['function'];
         $this->relations[$relationName] = array_map(fn($result) => new $relatedClass($result), $results);
-        return $this->relations[$relationName]; // TODO.NOTE: Might wanna do this in other methods too
+        return $this->relations[$relationName]; // TODO.NOTE: Might wanna do this in other methods too this it the only complex relationship function we call it was broken had to fix it with this
     }
 
 
@@ -191,9 +191,10 @@ abstract class Model
         $stmt->execute(['id' => $this->attributes[$foreignKey]]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (count($result) > 1) { // TODO: Make warning configurable
-            // DEBUG
-            echo "Warning: Multiple results found for belongsTo relationship. Only the first result will be returned.";
+        if (count($result) > 1) {
+            if (DEBUG) {
+                echo "Warning: Multiple results found for belongsTo relationship. Only the first result will be returned.";
+            }
         }
 
         $this->relations[debug_backtrace()[1]['function']] = $result ? new $relatedClass($result) : null;
@@ -220,9 +221,10 @@ abstract class Model
     {
         $results = $this->hasMany($relatedClass, $foreignKey, $localKey);
 
-        if (count($results) > 1) { // TODO: Make warning configurable
-            // DEBUG
-            echo "Warning: Multiple results found for hasOne relationship. Only the first result will be returned.";
+        if (count($results) > 1) {
+            if (DEBUG) {
+                echo "Warning: Multiple results found for hasOne relationship. Only the first result will be returned.";
+            }
         }
 
         return $results ? $results[0] : null;

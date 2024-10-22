@@ -1,28 +1,26 @@
 <?php
 error_reporting(E_ALL & ~E_NOTICE);
-define('DEBUG', true);
+const DEBUG = true;
 
+// TODO: Add seeder command
 if (false)
-    require_once 'seed.php';
+    require_once '../app/seed.php';
 
-require_once 'Frame/require.php';
-require_once 'controllers/UsersController.php';
-require_once 'controllers/HomeController.php';
+require_once '../src/Frame/require.php';
+require_once '../app/controllers/UsersController.php';
+require_once '../app/controllers/HomeController.php';
 
-require_once 'models/User.php';
-require_once 'models/Task.php';
-require_once 'models/SubTask.php';
+require_once '../app/models/User.php';
+require_once '../app/models/Task.php';
+require_once '../app/models/SubTask.php';
 
-require_once 'db.php';
-
-use Frame\Http\Request;
-use Frame\Http\Response;
-use Frame\Router\Route;
-use Frame\Router\Router;
+require_once '../app/db.php';
 
 use controllers\HomeController;
+use Frame\Router\Router;
 
 // TODO: Find a way to make statically/globally available
+// TODO: Make this router building in separate file in /app
 $router = new Router();
 
 $router->get('/home', [HomeController::class, 'index'], 'home.index');

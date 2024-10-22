@@ -2,10 +2,10 @@
 
 namespace Frame\Cli\Command\BuiltIns;
 
-use Frame\Cli\Command\Command;
-use Frame\Cli\Db\Migration;
 use PDO;
 use RuntimeException;
+use Frame\Cli\Command\Command;
+use Frame\Cli\Db\Migration;
 
 // Seems unused but gets dynamically loaded by the command loader
 class MigrateCommand extends Command
@@ -25,7 +25,7 @@ class MigrateCommand extends Command
         $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname", $username, $password); // TODO: Get connection from config
 
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $migrationsPath = __DIR__ . '/../../../../migrations'; // TODO: Get migrations path from config
+        $migrationsPath = __DIR__ . '/../../../../../app/migrations'; // TODO: Get migrations path from config
 
         parent::__construct('migrate', 'Run database migrations');
         $this->pdo = $pdo;
@@ -103,7 +103,7 @@ class MigrateCommand extends Command
         require_once $this->migrationsPath . '/' . $migration;
 
         $className = $this->getMigrationClassName($migration);
-        $fullClassName = "migrations\\$className"; // TODO: Make this configurable in config in sync with migrations path
+        $fullClassName = "app\\migrations\\$className"; // TODO: Make this configurable in config in sync with migrations path
 
         if (!class_exists($fullClassName)) {
             throw new RuntimeException("Migration class '$fullClassName' not found in file '$migration'");
@@ -112,7 +112,7 @@ class MigrateCommand extends Command
         $instance = new $fullClassName();
 
         if (!$instance instanceof Migration) {
-            throw new RuntimeException("Migration class '$fullClassName' must extend Frame\\Cli\\Db\\Migration");
+            throw new RuntimeException("Migration class '$fullClassName' must extend src\\Frame\\Cli\\Db\\Migration");
         }
 
         $this->pdo->beginTransaction();

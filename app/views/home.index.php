@@ -105,7 +105,10 @@
 <h1>Tasks</h1>
 
 <?php
-use models\{Task, User};
+
+use app\models\{User};
+use app\models\Task;
+
 /** @var array<Task> $tasks */
 /** @var array<User> $users */
 ?>

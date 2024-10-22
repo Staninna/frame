@@ -24,6 +24,6 @@ $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 // Initialize models with connection
-\models\User::setDatabaseConnection($pdo);
-\models\Task::setDatabaseConnection($pdo);
-\models\SubTask::setDatabaseConnection($pdo);
+\app\models\User::setDatabaseConnection($pdo);
+\app\models\Task::setDatabaseConnection($pdo);
+\app\models\SubTask::setDatabaseConnection($pdo);

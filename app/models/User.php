@@ -1,9 +1,8 @@
 <?php
 
-namespace models;
+namespace app\models;
 
 use Frame\Model\Model;
-use ReflectionException;
 
 class User extends Model
 {
