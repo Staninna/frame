@@ -1,4 +1,4 @@
-<?php
+<?php // TODO: MAKE THIS A COMMAND
 
 if (extension_loaded('mysqli')) {
     echo "MySQLi extension is installed and enabled.\n";
