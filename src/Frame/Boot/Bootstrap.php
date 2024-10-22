@@ -132,6 +132,10 @@ class Bootstrap
             echo '<p>Line: ' . htmlspecialchars($e->getLine()) . '</p>';
             echo '<h2>Stack Trace:</h2>';
             echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+            // phpstorm URL to see source code
+            // TODO: Make line work
+            $file = str_replace(BASE_PATH . '/', '', $e->getFile());
+            echo '<p><a href="jetbrains://php-storm/navigate/reference?project=notag&path=' . urlencode($file) . '&line=' . $e->getLine() . '">Open in PHPStorm</a></p>';
         } else {
             // Show generic error in production
             http_response_code(500);
