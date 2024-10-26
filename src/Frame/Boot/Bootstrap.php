@@ -169,8 +169,8 @@ class Bootstrap
     {
         try {
             // Create request and response objects
-//            $request = new Request();
-//            $response = new Response();
+            $request = new Request();
+            $response = new Response();
 
             // Run the router
             $this->router->run($request, $response);
