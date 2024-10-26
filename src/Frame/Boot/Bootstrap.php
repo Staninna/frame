@@ -126,8 +126,7 @@ class Bootstrap
         });
     }
 
-    private
-    function handleException(\Throwable $e): void
+    private function handleException(\Throwable $e): void
     {
         if ($this->config['app']['debug'] ?? false) {
             // Show detailed error information in debug mode
@@ -137,10 +136,24 @@ class Bootstrap
             echo '<p>Line: ' . htmlspecialchars($e->getLine()) . '</p>';
             echo '<h2>Stack Trace:</h2>';
             echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
-            // phpstorm URL to see source code
-            // TODO: Make line work
+
+            // PHPStorm URL with correct format
             $file = str_replace(BASE_PATH . '/', '', $e->getFile());
-            echo '<p><a href="jetbrains://php-storm/navigate/reference?project=notag&path=' . urlencode($file) . '&line=' . $e->getLine() . '">Open in PHPStorm</a></p>';
+            $file = str_replace('\\', '/', $file);
+            $lineNumber = $e->getLine() - 1;
+            $projectName = 'notag'; // TODO: Rename project to frame and later make this configurable
+
+            $phpstormUrl = sprintf(
+                'jetbrains://php-storm/navigate/reference?project=%s&path=%s:%d',
+                urlencode($projectName),
+                urlencode($file),
+                $lineNumber
+            );
+
+            echo sprintf(
+                '<p><a href="%s">Open in PHPStorm</a></p>',
+                htmlspecialchars($phpstormUrl)
+            );
         } else {
             // Show generic error in production
             http_response_code(500);
@@ -164,8 +177,7 @@ class Bootstrap
         error_log($logMessage, 3, $logPath);
     }
 
-    public
-    function run(): void
+    public function run(): void
     {
         try {
             // Create request and response objects
