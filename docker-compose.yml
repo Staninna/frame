@@ -12,6 +12,7 @@ services:
       - DB_USER=root
       - DB_PASSWORD=root
       - DB_NAME=test
+    user: "1000:1000"
 
   db:
     image: mysql:8.0

@@ -34,4 +34,10 @@ xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php
 # Enable Apache error logging
 RUN sed -i 's/LogLevel warn/LogLevel debug/' /etc/apache2/apache2.conf
 
+USER www-data
+
+# Give the user access to make directories and files
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R g+rw /var/www/html
+
 EXPOSE 80
