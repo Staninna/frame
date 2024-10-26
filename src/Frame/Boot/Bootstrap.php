@@ -157,7 +157,11 @@ class Bootstrap
             $e->getLine()
         );
 
-         error_log($logMessage, 3, BASE_PATH . '/storage/logs/error.log');
+        $logPath = BASE_PATH . '/storage/logs/error.log';
+        if (!is_dir(dirname($logPath))) {
+            mkdir(dirname($logPath), 0777, true);
+        }
+        error_log($logMessage, 3, $logPath);
     }
 
     public
