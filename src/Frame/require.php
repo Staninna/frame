@@ -1,5 +1,7 @@
 <?php
 
+require_once 'functions.php';
+
 require_once 'Router/Router.php';
 require_once 'Router/Route.php';
 require_once 'Http/Method.php';
