@@ -6,6 +6,8 @@ use PDO;
 use ReflectionClass;
 use ReflectionException;
 
+// TODO: Figure out why properties are not working see: User.php, Task.php, SubTask.php
+// TODO: Add logging for the database queries in a log file or something to check if there are redundant queries etc.
 abstract class Model
 {
     protected string $table;
@@ -35,6 +37,7 @@ abstract class Model
     {
         $model = new static();
         $stmt = self::$db->prepare("SELECT * FROM $model->table");
+        log_query($stmt->queryString);
         $stmt->execute();
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return array_map(fn($result) => new static($result), $results);
@@ -44,6 +47,7 @@ abstract class Model
     {
         $model = new static();
         $stmt = self::$db->prepare("SELECT * FROM $model->table WHERE $model->primaryKey = :id");
+        log_query($stmt->queryString, ['id' => $id]);
         $stmt->execute(['id' => $id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ? new static($result) : null;
@@ -53,6 +57,7 @@ abstract class Model
     {
         $model = new static();
         $stmt = self::$db->prepare("SELECT * FROM $model->table WHERE $column $operator :value");
+        log_query($stmt->queryString, ['value' => $value]);
         $stmt->execute(['value' => $value]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return array_map(fn($result) => new static($result), $results);
@@ -73,6 +78,7 @@ abstract class Model
         $columns = implode(', ', array_keys($this->attributes));
         $placeholders = ':' . implode(', :', array_keys($this->attributes));
         $stmt = self::$db->prepare("INSERT INTO $this->table ($columns) VALUES ($placeholders)");
+        log_query($stmt->queryString, [$this->attributes]);
         $stmt->execute($this->attributes);
         $this->attributes[$this->primaryKey] = self::$db->lastInsertId();
     }
@@ -81,12 +87,14 @@ abstract class Model
     {
         $setClause = implode(', ', array_map(fn($key) => "$key = :$key", array_keys($this->attributes)));
         $stmt = self::$db->prepare("UPDATE $this->table SET $setClause WHERE $this->primaryKey = :$this->primaryKey");
+        log_query($stmt->queryString, [$this->attributes]);
         $stmt->execute($this->attributes);
     }
 
     public function delete(): void
     {
         $stmt = self::$db->prepare("DELETE FROM $this->table WHERE $this->primaryKey = :$this->primaryKey");
+        log_query($stmt->queryString, [$this->primaryKey => $this->attributes[$this->primaryKey]]);
         $stmt->execute([$this->primaryKey => $this->attributes[$this->primaryKey]]);
     }
 
@@ -138,18 +146,21 @@ abstract class Model
     public function hasMany($relatedClass, $foreignKey = null, $localKey = null): array
     {
         $localKey = $localKey ?: $this->primaryKey;
-        $foreignKey = $foreignKey ?: strtolower(get_class($this)) . '_id';
+        $foreignKey = $foreignKey ?: strtolower(class_basename(get_class($this))) . '_id';
 
         $relatedModel = new $relatedClass();
 
-        $stmt = self::$db->prepare("SELECT * FROM $relatedModel->table WHERE $foreignKey = :id");
+        $stmt = self::$db->prepare("SELECT * FROM `{$relatedModel->table}` WHERE `{$foreignKey}` = :id");
+        log_query($stmt->queryString, ['id' => $this->attributes[$localKey]]);
         $stmt->execute(['id' => $this->attributes[$localKey]]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Map results to related model instances
-        $this->relations[debug_backtrace()[1]['function']] = array_map(fn($result) => new $relatedClass($result), $results);
-        return $this->relations[debug_backtrace()[1]['function']];
+        $relationName = debug_backtrace()[1]['function'];
+        $this->relations[$relationName] = array_map(fn($result) => new $relatedClass($result), $results);
+        return $this->relations[$relationName]; // TODO.NOTE: Might wanna do this in other methods too this it the only complex relationship function we call it was broken had to fix it with this
     }
+
 
     /**
      * Retrieves the related model that the current model belongs to
@@ -176,12 +187,14 @@ abstract class Model
         $relatedModel = new $relatedClass();
 
         $stmt = self::$db->prepare("SELECT * FROM $relatedModel->table WHERE $ownerKey = :id");
+        log_query($stmt->queryString, ['id' => $this->attributes[$foreignKey]]);
         $stmt->execute(['id' => $this->attributes[$foreignKey]]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (count($result) > 1) { // TODO: Make warning configurable
-            // DEBUG
+        if (count($result) > 1) {
+//            if (DEBUG) {
             echo "Warning: Multiple results found for belongsTo relationship. Only the first result will be returned.";
+//            }
         }
 
         $this->relations[debug_backtrace()[1]['function']] = $result ? new $relatedClass($result) : null;
@@ -208,9 +221,10 @@ abstract class Model
     {
         $results = $this->hasMany($relatedClass, $foreignKey, $localKey);
 
-        if (count($results) > 1) { // TODO: Make warning configurable
-            // DEBUG
+        if (count($results) > 1) {
+//            if (DEBUG) {
             echo "Warning: Multiple results found for hasOne relationship. Only the first result will be returned.";
+//            }
         }
 
         return $results ? $results[0] : null;
@@ -238,7 +252,7 @@ abstract class Model
      */
     public function belongsToMany(string $relatedClass, string $pivotTable = null, string $foreignPivotKey = null, string $relatedPivotKey = null): array
     {
-        $foreignPivotKey = $foreignPivotKey ?: strtolower(get_class($this)) . '_id';
+        $foreignPivotKey = $foreignPivotKey ?: strtolower(class_basename(get_class($this))) . '_id';
         $relatedPivotKey = $relatedPivotKey ?: strtolower((new ReflectionClass($relatedClass))->getShortName()) . '_id';
         $pivotTable = $pivotTable ?: $this->guessPivotTableName($relatedClass);
 
@@ -250,6 +264,7 @@ abstract class Model
             JOIN $pivotTable ON $relatedModel->table.$relatedModel->primaryKey = $pivotTable.$relatedPivotKey
             WHERE $pivotTable.$foreignPivotKey = :id
         ");
+        log_query($stmt->queryString, ['id' => $this->attributes[$this->primaryKey]]);
 
         $stmt->execute(['id' => $this->attributes[$this->primaryKey]]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -312,4 +327,25 @@ abstract class Model
         }
         return $this;
     }
+}
+
+function class_basename($class): bool|string
+{
+    $parts = explode('\\', $class);
+    return end($parts);
+}
+
+global $queryBuffer;
+function log_query(string $query, mixed $params = null): void
+{
+    global $queryBuffer;
+
+    // Prepare the log entry
+    $logEntry = date('Y-m-d H:i:s') . " - " . $query;
+    if ($params) {
+        $logEntry .= "\nParameters: " . json_encode($params);
+    }
+
+    // Add the log entry to the global buffer
+    $queryBuffer[] = $logEntry;
 }

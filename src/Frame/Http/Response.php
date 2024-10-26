@@ -83,5 +83,12 @@ class Response
         }
 
         echo $this->body;
+
+//        if (DEBUG) {
+//            echo '<pre>';
+//            global $queryBuffer;
+//            print_r($queryBuffer);
+//            echo '</pre>';
+//        }
     }
 }

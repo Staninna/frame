@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     && docker-php-ext-install zip
 
+# Install MySQLi and PDO MySQL
+RUN docker-php-ext-install mysqli pdo pdo_mysql && docker-php-ext-enable mysqli pdo pdo_mysql
+
 # Install Xdebug
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 
@@ -19,7 +22,7 @@ RUN echo '<Directory /var/www/html/>\n\
 RUN a2enconf custom-directory
 
 # Set correct permissions for .htaccess
-copy .htaccess /var/www/html/.htaccess
+COPY .htaccess /var/www/html/.htaccess
 RUN chown www-data:www-data /var/www/html/.htaccess && chmod 644 /var/www/html/.htaccess
 
 # Configure Xdebug
@@ -30,5 +33,11 @@ xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php
 
 # Enable Apache error logging
 RUN sed -i 's/LogLevel warn/LogLevel debug/' /etc/apache2/apache2.conf
+
+USER www-data
+
+# Give the user access to make directories and files
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R g+rw /var/www/html
 
 EXPOSE 80

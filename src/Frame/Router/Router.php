@@ -132,10 +132,6 @@ class Router
 
     public function run(): void
     {
-        if (!session_id()) {
-            session_start();
-        }
-
         $request = new Request();
         $response = new Response();
 

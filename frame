@@ -1,0 +1,19 @@
+#!/usr/bin/env php
+<?php
+
+// TODO: For whole project make a define BASE_PATH and base all paths on that no relative clusterfucking anymore PLEASE!!!
+
+require_once __DIR__ . '/src/Frame/Cli/Command/require.php';
+
+use src\Frame\Cli\Command\CommandLoader;
+
+$commandLoader = new CommandLoader();
+
+$commandName = $argv[1] ?? null;
+$arguments = array_slice($argv, 2);
+
+if ($commandName) {
+    $commandLoader->runCommand($commandName, $arguments);
+} else {
+    $commandLoader->help();
+}
