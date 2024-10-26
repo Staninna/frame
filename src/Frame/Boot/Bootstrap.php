@@ -6,21 +6,20 @@ use ErrorException;
 use Frame\Http\Request;
 use Frame\Http\Response;
 use Frame\Router\Router;
+use Frame\Session\SessionManager;
 use PDO;
 
 class Bootstrap
 {
     private Router $router;
-    private array $config;
+    private array $config = [];
+    private SessionManager $session; // TODO: Make this a service
 
     /**
      * @throws ErrorException
      */
     public function __construct()
     {
-        // Start the session
-        session_start();
-
         // Load environment variables
         $this->loadEnvironmentVariables();
 
@@ -28,6 +27,8 @@ class Bootstrap
         $this->loadConfiguration();
 
         // Initialize core components
+        $this->session = new SessionManager($this->config['session']);
+        $this->session->start();
         $this->initializeDatabase();
         $this->initializeRouter();
 
@@ -37,7 +38,7 @@ class Bootstrap
 
     private function loadEnvironmentVariables(): void
     {
-        $envFile = dirname(__DIR__) . '/.env';
+        $envFile = BASE_PATH . '/.env';
 
         if (file_exists($envFile)) {
             $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -60,17 +61,20 @@ class Bootstrap
     private function loadConfiguration(): void
     {
         // Load configuration files from app/config
-        $configPath = dirname(__DIR__) . '/../../app/config/';
+        $configPath = BASE_PATH . '/app/config/';
 
-        $this->config = [
-            'app' => require $configPath . 'app.php',
-            'database' => require $configPath . 'database.php',
-        ];
+        $files = scandir($configPath);
+        foreach ($files as $file) {
+            $namespace = pathinfo($file, PATHINFO_FILENAME);
+            if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+                $this->config[$namespace] = require $configPath . $file;
+            }
+        }
     }
 
     private function initializeDatabase(): void
     {
-        $host = $this->config['database']['connections']['mysql']['host'];
+        $host = $this->config['database']['connections']['mysql']['host']; // TODO: Remove all $this->config[...] and replace them with a config() function at some point
         $port = $this->config['database']['connections']['mysql']['port'];
         $username = $this->config['database']['connections']['mysql']['username'];
         $password = $this->config['database']['connections']['mysql']['password'];
@@ -99,7 +103,7 @@ class Bootstrap
 
         // Register routes
         $router = $this->router;
-        require BASE_PATH . '/app/config/routes.php';
+        require BASE_PATH . '/app/routes.php';
     }
 
     private function registerErrorHandlers(): void
@@ -122,7 +126,8 @@ class Bootstrap
         });
     }
 
-    private function handleException(\Throwable $e): void
+    private
+    function handleException(\Throwable $e): void
     {
         if ($this->config['app']['debug'] ?? false) {
             // Show detailed error information in debug mode
@@ -152,16 +157,16 @@ class Bootstrap
             $e->getLine()
         );
 
-        // TODO: Make working with docker
-        // error_log($logMessage, 3, dirname(__DIR__) . '/storage/logs/error.log');
+         error_log($logMessage, 3, BASE_PATH . '/storage/logs/error.log');
     }
 
-    public function run(): void
+    public
+    function run(): void
     {
         try {
             // Create request and response objects
-            $request = new Request();
-            $response = new Response();
+//            $request = new Request();
+//            $response = new Response();
 
             // Run the router
             $this->router->run($request, $response);
