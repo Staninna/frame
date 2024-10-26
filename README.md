@@ -10,8 +10,6 @@ this is a homework branch
 
 ### Database
 
-1. Migrations are in `src/migrations.sql` on `mysql://root:root@localhost:3306/test`
-2. Enable seeder by uncommenting making the `if` on line 4 a truly state in `src/index.php`
-3. Disable seeder again after seeding the database
-
-I know its scuffed but it works
+1. run migrations by running `php frame migrate`
+2. Enable seeder by uncommenting making the `if` on line 13 a truly state in `src/index.php`
+3. Disable seeder again after seeding the database by uncommenting making the `if` on line 13 a truly state in `src/index.php`
