@@ -1,11 +1,11 @@
 #!/usr/bin/env php
 <?php
 
-// TODO: For whole project make a define BASE_PATH and base all paths on that no relative clusterfucking anymore PLEASE!!!
+// TODO: Remove all __DIR__ and use a define BASE_PATH in web and cli environments
 
 require_once __DIR__ . '/src/Frame/Cli/Command/require.php';
 
-use src\Frame\Cli\Command\CommandLoader;
+use Frame\Cli\Command\CommandLoader;
 
 $commandLoader = new CommandLoader();
 

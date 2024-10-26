@@ -8,6 +8,7 @@ use Frame\Cli\Command\Command;
 use Frame\Cli\Db\Migration;
 
 // Seems unused but gets dynamically loaded by the command loader
+// TODO: Better way for config in commands
 class MigrateCommand extends Command
 {
     private PDO $pdo;
@@ -32,7 +33,7 @@ class MigrateCommand extends Command
 
         if (!realpath($migrationsPath)) {
             echo "Migrations path not found: $migrationsPath\n";
-            echo "Next to the Frame directory, create a migrations directory and put your migration files in it.\n";
+            echo "In the app directory, create a 'migrations' directory and put your migration files in it.\n";
             exit(1);
         } else {
             $this->migrationsPath = realpath($migrationsPath);
