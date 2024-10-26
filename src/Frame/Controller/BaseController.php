@@ -13,6 +13,6 @@ abstract class BaseController
     public static function view(string $view, array $data = [], string $templateDir = 'views'): void
     {
         extract($data);
-        include __DIR__ . "/../../../app/{$templateDir}/{$view}.php";
+        include BASE_PATH . "/app/{$templateDir}/{$view}.php";
     }
 }
