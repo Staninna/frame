@@ -2,8 +2,6 @@
 
 namespace Frame\Core\Http;
 
-use const Tests\MOCKING;
-
 class Request extends Message implements HttpConstants
 {
     protected Method $method;
